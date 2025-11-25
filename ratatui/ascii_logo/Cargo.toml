@@ -33,7 +33,6 @@ mousefood = { git = "https://github.com/j-g00da/mousefood", rev = "cc9f8fe372f09
 ] }
 ratatui = { version = "0.30.0-alpha.5", default-features = false }
 
-
 # --- Optional Embassy Integration ---
 # esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"] }
 
