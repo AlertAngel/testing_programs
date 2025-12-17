@@ -37,23 +37,23 @@ fn main() {
 
     let peripherals = Peripherals::take().unwrap();
 
-    let reset = PinDriver::output(peripherals.pins.gpio4).unwrap();
-    let dc = PinDriver::output(peripherals.pins.gpio2).unwrap();
+    let reset = PinDriver::output(peripherals.pins.gpio8).unwrap();
+    let dc = PinDriver::output(peripherals.pins.gpio3).unwrap();
 
     let mut delay = Delay::new_default();
 
     let spi_driver = SpiDriver::new(
         peripherals.spi2,
-        peripherals.pins.gpio18,
-        peripherals.pins.gpio23,
+        peripherals.pins.gpio10,
+        peripherals.pins.gpio6,
         None::<AnyInputPin>,
         &esp_idf_svc::hal::spi::config::DriverConfig::default()
-            .dma(Dma::Channel1(320 * 240 * 2 + 8)),
+            .dma(Dma::Auto(320 * 240 * 2 + 8)),
     ).unwrap();
 
     let spi = SpiDeviceDriver::new(
         spi_driver,
-        Some(peripherals.pins.gpio15),
+        Some(peripherals.pins.gpio9),
         &Config::new().baudrate(Hertz(26_000_000))
     ).unwrap();
 

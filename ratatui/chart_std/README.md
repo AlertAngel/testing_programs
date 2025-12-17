@@ -113,24 +113,30 @@ fn main() -> ! {
     esp_idf_svc::log::EspLogger::initialize_default();
 
     let peripherals = Peripherals::take().unwrap();
-    let reset = PinDriver::output(peripherals.pins.gpio4).unwrap();
-    let dc = PinDriver::output(peripherals.pins.gpio2).unwrap();
+
+    let reset = PinDriver::output(peripherals.pins.gpio8).unwrap();
+    let dc = PinDriver::output(peripherals.pins.gpio3).unwrap();
+
     let mut delay = Delay::new_default();
 
     let spi_driver = SpiDriver::new(
         peripherals.spi2,
-        peripherals.pins.gpio18,
-        peripherals.pins.gpio23,
+        peripherals.pins.gpio10,
+        peripherals.pins.gpio6,
         None::<AnyInputPin>,
         &esp_idf_svc::hal::spi::config::DriverConfig::default()
-            .dma(Dma::Channel1(320 * 240 * 2 + 8)),
-    ).unwrap();
+            .dma(Dma::Auto(320 * 240 * 2 + 8)),
+    )
+    .unwrap();
+
+    log::info!("SPI initialized");
 
     let spi = SpiDeviceDriver::new(
         spi_driver,
-        Some(peripherals.pins.gpio15),
-        &Config::new().baudrate(Hertz(26_000_000))
-    ).unwrap();
+        Some(peripherals.pins.gpio9),
+        &Config::new().baudrate(Hertz(26_000_000)),
+    )
+    .unwrap();
 
     let buffer = SPI_BUFFER.init([0; 512]);
     let di = SpiInterface::new(spi, dc, buffer);
@@ -138,30 +144,60 @@ fn main() -> ! {
     let mut display = Builder::new(ILI9342CRgb565, di)
         .reset_pin(reset)
         .init(&mut delay)
-        .map_err(|_| Box::<dyn Error>::from("Display Init Failed"))
         .unwrap();
+
+    log::info!("Display initialized");
 
     display
         .set_orientation(Orientation::default().rotate(Rotation::Deg270))
-        .map_err(|_| Box::<dyn Error>::from("Set Orientation Failed"))
         .unwrap();
 
-    display
-        .clear(Rgb565::BLACK)
-        .map_err(|_| Box::<dyn Error>::from("Clear Display Failed"))
-        .unwrap();
+    display.clear(Rgb565::BLACK).unwrap();
 
-    let backend = EmbeddedBackend::new(&mut display, EmbeddedBackendConfig::default());
-    let mut terminal = Terminal::new(backend)
-        .map_err(|_| Box::<dyn Error>::from("Terminal creation failed"))
-        .unwrap();
+    log::info!("Orientation set. Display Cleared");
+
+    // Check available heap before creating backend
+    log::info!("Free heap before backend: {} bytes", unsafe {
+        esp_idf_svc::sys::esp_get_free_heap_size()
+    });
+
+    let backend_result = EmbeddedBackend::new(&mut display, EmbeddedBackendConfig::default());
+    
+    log::info!("Backend created");
+
+    let mut terminal = match Terminal::new(backend_result) {
+        Ok(t) => {
+            log::info!("Terminal created successfully");
+            t
+        }
+        Err(e) => {
+            log::error!("Failed to create terminal: {:?}", e);
+            panic!("Terminal creation failed");
+        }
+    };
 
     let mut app = App::new();
+    
+    // Pre-populate with some data so first frame isn't empty
+    for _ in 0..20 {
+        app.update();
+    }
+
+    log::info!("Starting draw loop");
 
     loop {
         app.update();
-        terminal.draw(|frame| app.draw(frame)).unwrap();
-        delay.delay_ms(100); // Update every 100ms for smooth animation
+        
+        match terminal.draw(|frame| app.draw(frame)) {
+            Ok(_) => {
+                log::info!("Frame drawn successfully");
+            }
+            Err(e) => {
+                log::error!("Draw failed: {:?}", e);
+            }
+        }
+        
+        delay.delay_ms(100);
     }
 }
 ```
