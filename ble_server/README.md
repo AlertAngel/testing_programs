@@ -8,11 +8,7 @@ This is the code to create a basic BLE Server to share data to a BLE client
 
 ## Phone Screen recording (BLE client)
 
-
-
 https://github.com/user-attachments/assets/2416184c-90c5-4748-bcb3-26d18dd6543f
-
-
 
 # Code
 
