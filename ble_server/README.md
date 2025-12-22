@@ -8,7 +8,11 @@ This is the code to create a basic BLE Server to share data to a BLE client
 
 ## Phone Screen recording (BLE client)
 
-![phone](https://vhs.charm.sh/vhs-5ZdKXnc6x7GUEWSg9iogiC.gif)
+
+
+https://github.com/user-attachments/assets/2416184c-90c5-4748-bcb3-26d18dd6543f
+
+
 
 # Code
 
@@ -23,7 +27,11 @@ fn main() -> anyhow::Result<()> {
   let ble_device = BLEDevice::take();
   let ble_advertising = ble_device.get_advertising();
 
-  let server = ble_device.get_server();
+  l
+
+https://github.com/user-attachments/assets/fd254d88-0f6c-43fc-995f-4b75ff817d67
+
+et server = ble_device.get_server();
   server.on_connect(|server, desc| {
     ::log::info!("Client connected: {:?}", desc);
 
