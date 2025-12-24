@@ -22,12 +22,8 @@ fn main() -> anyhow::Result<()> {
 
   let ble_device = BLEDevice::take();
   let ble_advertising = ble_device.get_advertising();
-
-  l
-
-https://github.com/user-attachments/assets/fd254d88-0f6c-43fc-995f-4b75ff817d67
-
-et server = ble_device.get_server();
+  
+  let server = ble_device.get_server();
   server.on_connect(|server, desc| {
     ::log::info!("Client connected: {:?}", desc);
 
